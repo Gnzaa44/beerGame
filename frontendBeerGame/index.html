@@ -26,6 +26,36 @@
                 </div>
             </div>
             <!-- Repetir para Mayorista, Distribuidor y Fábrica -->
+            <div class="col-md-3 role" id="wholesaler">
+                <h3>Mayorista</h3>
+                <p>Jugador: <span class="player-name"></span></p>
+                <p>Inventario: <span class="inventory"></span></p>
+                <p>Pedidos pendientes: <span class="backorder"></span></p>
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control order-input" min="0">
+                    <button class="btn btn-primary order-button">Realizar pedido</button>
+                </div>
+            </div>
+            <div class="col-md-3 role" id="distributor">
+                <h3>Distribuidor</h3>
+                <p>Jugador: <span class="player-name"></span></p>
+                <p>Inventario: <span class="inventory"></span></p>
+                <p>Pedidos pendientes: <span class="backorder"></span></p>
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control order-input" min="0">
+                    <button class="btn btn-primary order-button">Realizar pedido</button>
+                </div>
+            </div>
+            <div class="col-md-3 role" id="factory">
+                <h3>Fabricante</h3>
+                <p>Jugador: <span class="player-name"></span></p>
+                <p>Inventario: <span class="inventory"></span></p>
+                <p>Pedidos pendientes: <span class="backorder"></span></p>
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control order-input" min="0">
+                    <button class="btn btn-primary order-button">Realizar pedido</button>
+                </div>
+            </div>
         </div>
         <div id="info-panel" class="mt-4 p-3 bg-light">
             <h3>Información del juego</h3>
@@ -65,6 +95,28 @@
             </div>
         </div>
     </div>
+    <!-- Modal para ajustar inventario -->
+<div class="modal fade" id="inventoryModal" tabindex="-1" aria-labelledby="inventoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="inventoryModalLabel">Ajustar inventario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="inventoryForm">
+            <div class="mb-3">
+              <label for="inventoryAmount" class="form-label">Cantidad en inventario</label>
+              <input type="number" class="form-control" id="inventoryAmount" min="0" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="updateInventoryBtn">Actualizar inventario</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>

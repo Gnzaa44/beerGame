@@ -67,6 +67,11 @@ class Game {
         this.gameState.totalCosts += totalCost;
     }
 
+    updateInventory(role, newInventory) {
+        if (this.gameState.roles[role]) {
+          this.gameState.roles[role].inventory = newInventory;
+        }
+      }
     getGameState() {
         return this.gameState;
     }
