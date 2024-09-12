@@ -24,3 +24,16 @@ body {
     background-color: #e9ecef;
     border-radius: 5px;
 }
+.order-status {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.text-success {
+    color: #28a745;
+}
+
+.inventory:hover {
+    cursor: pointer;
+    text-decoration: underline;
+}
