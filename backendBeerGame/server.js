@@ -10,25 +10,33 @@ const io = socketIo(server);
 
 app.use(express.static(path.join(__dirname, '../frontendBeerGame')));
 
-const game = new Game();
+let game;
 
 io.on('connection', (socket) => {
   console.log('Nuevo jugador conectado');
 
   socket.on('playerInfo', (info) => {
+    if (!game) {
+      game = new Game(info.gameDuration);
+    }
     const role = game.addPlayer(socket.id, info.name, info.role);
     if (role) {
       socket.emit('roleAssigned', role);
       io.emit('updateGameState', game.getGameState());
     } else {
-      socket.emit('roleUnavailable', 'El rol  ${info.role} seleccionado esta en uso. Por favor, elige otro.');
+      socket.emit('roleUnavailable', `El rol ${info.role} seleccionado está en uso. Por favor, elige otro.`);
     }
   });
 
   socket.on('placeOrder', (order) => {
-    game.placeOrder(socket.id, order.amount);
-    socket.emit('orderConfirmation', `Pedido de ${order.amount} unidades realizado`);
-    io.emit('updateGameState', game.getGameState());
+    if (game.placeOrder(socket.id, order.amount)) {
+      socket.emit('orderConfirmation', `Pedido de ${order.amount} unidades realizado`);
+      if (game.canAdvanceWeek()) {
+        advanceWeek();
+      } else {
+        io.emit('updateGameState', game.getGameState());
+      }
+    }
   });
 
   socket.on('updateInventory', (inventoryUpdate) => {
@@ -38,20 +46,20 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Jugador desconectado');
-    game.removePlayer(socket.id);
-    io.emit('updateGameState', game.getGameState());
+    if (game) {
+      game.removePlayer(socket.id);
+      io.emit('updateGameState', game.getGameState());
+    }
   });
 });
 
-function startGame() {
-  setInterval(() => {
-    game.advanceWeek();
-    io.emit('updateGameState', game.getGameState());
-  }, 20000); // Avanza una semana cada 10 segundos
+function advanceWeek() {
+  if (game.advanceWeek()) {
+    io.emit('weekAdvanced', game.getGameState());
+  }
 }
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
-  startGame();
 });
