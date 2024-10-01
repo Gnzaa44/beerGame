@@ -5,58 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego de la Cerveza</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container" id="game-container">
-        <h1 class="text-center my-4">Juego de la Cerveza</h1>
+    <div id="game-container" class="container">
+        <h1 id="juego-de-la-cerveza" class="text-center my-4">Juego de la Cerveza</h1>
+
         <div id="player-info" class="text-center mb-4">
             <h2>Tu rol: <span id="player-role"></span></h2>
             <p>Semana actual: <span id="current-week"></span></p>
         </div>
+
         <div id="game-board" class="row">
-            <div class="col-md-3 role" id="retailer">
+            <div id="retailer" class="col-md-3 role">
                 <h3>Minorista</h3>
                 <p>Jugador: <span class="player-name"></span></p>
                 <p>Inventario: <span class="inventory"></span></p>
                 <p>Pedidos pendientes: <span class="backorder"></span></p>
+                <p>Pedidos entrantes: <span class="incoming-orders"></span></p>
                 <div class="input-group mb-3">
-                    <input type="number" class="form-control order-input" min="0">
-                    <button class="btn btn-primary order-button">Realizar pedido</button>
+                    <input type="number" class="form-control order-input" placeholder="Cantidad">
+                    <button class="btn btn-primary order-button" type="button">Realizar pedido</button>
                 </div>
+                <p class="order-status"></p>
             </div>
-            <!-- Repetir para Mayorista, Distribuidor y Fábrica -->
-            <div class="col-md-3 role" id="wholesaler">
+
+            <div id="wholesaler" class="col-md-3 role">
                 <h3>Mayorista</h3>
                 <p>Jugador: <span class="player-name"></span></p>
                 <p>Inventario: <span class="inventory"></span></p>
                 <p>Pedidos pendientes: <span class="backorder"></span></p>
+                <p>Pedidos entrantes: <span class="incoming-orders"></span></p>
                 <div class="input-group mb-3">
-                    <input type="number" class="form-control order-input" min="0">
-                    <button class="btn btn-primary order-button">Realizar pedido</button>
+                    <input type="number" class="form-control order-input" placeholder="Cantidad">
+                    <button class="btn btn-primary order-button" type="button">Realizar pedido</button>
                 </div>
+                <p class="order-status"></p>
             </div>
-            <div class="col-md-3 role" id="distributor">
+
+            <div id="distributor" class="col-md-3 role">
                 <h3>Distribuidor</h3>
                 <p>Jugador: <span class="player-name"></span></p>
                 <p>Inventario: <span class="inventory"></span></p>
                 <p>Pedidos pendientes: <span class="backorder"></span></p>
+                <p>Pedidos entrantes: <span class="incoming-orders"></span></p>
                 <div class="input-group mb-3">
-                    <input type="number" class="form-control order-input" min="0">
-                    <button class="btn btn-primary order-button">Realizar pedido</button>
+                    <input type="number" class="form-control order-input" placeholder="Cantidad">
+                    <button class="btn btn-primary order-button" type="button">Realizar pedido</button>
                 </div>
+                <p class="order-status"></p>
             </div>
-            <div class="col-md-3 role" id="factory">
+
+            <div id="factory" class="col-md-3 role">
                 <h3>Fabricante</h3>
                 <p>Jugador: <span class="player-name"></span></p>
                 <p>Inventario: <span class="inventory"></span></p>
                 <p>Pedidos pendientes: <span class="backorder"></span></p>
+                <p>Pedidos entrantes: <span class="incoming-orders"></span></p>
                 <div class="input-group mb-3">
-                    <input type="number" class="form-control order-input" min="0">
-                    <button class="btn btn-primary order-button">Realizar pedido</button>
+                    <input type="number" class="form-control order-input" placeholder="Cantidad">
+                    <button class="btn btn-primary order-button" type="button">Realizar pedido</button>
                 </div>
+                <p class="order-status"></p>
             </div>
         </div>
+
         <div id="info-panel" class="mt-4 p-3 bg-light">
             <h3>Información del juego</h3>
             <p>Costos totales: <span id="total-costs"></span></p>
@@ -64,30 +77,27 @@
         </div>
     </div>
 
-    <!-- Modal para ingresar nombre y elegir rol -->
-    <div class="modal fade" id="playerInfoModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="playerInfoModalLabel" aria-hidden="true">
+    <div id="playerInfoModal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="playerInfoModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="playerInfoModalLabel">Bienvenido al Juego de la Cerveza</h5>
                 </div>
                 <div class="modal-body">
-                    <form id="playerInfoForm">
-                        <div class="mb-3">
-                            <label for="playerName" class="form-label">Nombre de usuario</label>
-                            <input type="text" class="form-control" id="playerName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="playerRole" class="form-label">Elige tu rol</label>
-                            <select class="form-select" id="playerRole" required>
-                                <option value="">Selecciona un rol</option>
-                                <option value="Retailer">Minorista</option>
-                                <option value="Wholesaler">Mayorista</option>
-                                <option value="Distributor">Distribuidor</option>
-                                <option value="Factory">Fábrica</option>
-                            </select>
-                        </div>
-                    </form>
+                    <div class="mb-3">
+                        <label for="playerName" class="form-label">Nombre de usuario</label>
+                        <input type="text" class="form-control" id="playerName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="playerRole" class="form-label">Elige tu rol</label>
+                        <select class="form-select" id="playerRole" required>
+                            <option value="">Selecciona un rol</option>
+                            <option value="Retailer">Minorista</option>
+                            <option value="Wholesaler">Mayorista</option>
+                            <option value="Distributor">Distribuidor</option>
+                            <option value="Factory">Fábrica</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="startGameBtn">Comenzar juego</button>
@@ -95,28 +105,25 @@
             </div>
         </div>
     </div>
-    <!-- Modal para ajustar inventario -->
-<div class="modal fade" id="inventoryModal" tabindex="-1" aria-labelledby="inventoryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="inventoryModalLabel">Ajustar inventario</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form id="inventoryForm">
-            <div class="mb-3">
-              <label for="inventoryAmount" class="form-label">Cantidad en inventario</label>
-              <input type="number" class="form-control" id="inventoryAmount" min="0" required>
+    <div id="gameSettingsModal" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="gameSettingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gameSettingsModalLabel">Configuración del Juego</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="gameDuration" class="form-label">Duración del juego (semanas)</label>
+                        <input type="number" class="form-control" id="gameDuration" min="24" max="50" value="24" required>
+                        <div class="form-text">Selecciona un número entre 24 y 50 semanas.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="startGameWithSettingsBtn">Comenzar juego</button>
+                </div>
             </div>
-          </form>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-primary" id="updateInventoryBtn">Actualizar inventario</button>
-        </div>
-      </div>
     </div>
-  </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
