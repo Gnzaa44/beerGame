@@ -40,7 +40,6 @@ document.getElementById('startGameWithSettingsBtn').addEventListener('click', ()
 socket.on('roleAssigned', (role) => {
   playerRole = role;
   document.getElementById('player-role').textContent = role;
-  updateUIForPlayerRole();
 });
 
 socket.on('updateGameState', (gameState) => {
@@ -49,7 +48,7 @@ socket.on('updateGameState', (gameState) => {
   
   updateRoleInfo(gameState.roles);
   updateInfoPanel(gameState);
-  updateAvailableRoles(gameState.roles);
+  
   if (currentWeek >= gameDuration) {
     endGame(gameState);
   }
@@ -66,27 +65,20 @@ function updateRoleInfo(roles) {
 
       const orderButton = roleElement.querySelector('.order-button');
       const orderStatus = roleElement.querySelector('.order-status');
-      const orderInput = roleElement.querySelector('.order-input');
 
-      if (role === playerRole) {
-        if (info.orderPlaced) {
-          orderButton.disabled = true;
-          orderInput.disabled = true;
-          orderStatus.textContent = 'Pedido realizado para esta semana';
-          orderStatus.classList.add('text-success');
-        } else {
-          orderButton.disabled = false;
-          orderInput.disabled = false;
-          orderStatus.textContent = '';
-          orderStatus.classList.remove('text-success');
-        }
-      } else {
+      if (info.orderPlaced) {
         orderButton.disabled = true;
-        orderInput.disabled = true;
-        orderStatus.textContent = 'No puedes hacer pedidos para este rol';
-        orderStatus.classList.add('text-muted');
+        orderStatus.textContent = 'Pedido realizado para esta semana';
+        orderStatus.classList.add('text-success');
+      } else {
+        orderButton.disabled = false;
+        orderStatus.textContent = '';
+        orderStatus.classList.remove('text-success');
       }
-      
+
+      roleElement.querySelector('.inventory').addEventListener('click', () => {
+        showInventoryModal(role, info.inventory);
+      });
     }
   }
 }
@@ -95,48 +87,6 @@ function updateInfoPanel(gameState) {
   document.getElementById('total-costs').textContent = gameState.totalCosts;
   document.getElementById('customer-demand').textContent = gameState.customerDemand;
 }
-function updateAvailableRoles(roles) {
-  const roleSelect = document.getElementById('playerRole');
-  roleSelect.innerHTML = '';
-  
-  for (const [role, info] of Object.entries(roles)) {
-    const option = document.createElement('option');
-    option.value = role;
-    option.textContent = role;
-    option.disabled = !!info.playerName;
-    roleSelect.appendChild(option);
-  }
-}
-function updateUIForPlayerRole() {
-  document.querySelectorAll('.role').forEach(roleElement => {
-    const role = roleElement.id.charAt(0).toUpperCase() + roleElement.id.slice(1);
-    const orderButton = roleElement.querySelector('.order-button');
-    const orderInput = roleElement.querySelector('.order-input');
-    
-    if (role === playerRole) {
-      orderButton.disabled = false;
-      orderInput.disabled = false;
-      orderButton.addEventListener('click', handleOrderPlacement);
-    } else {
-      orderButton.disabled = true;
-      orderInput.disabled = true;
-      orderButton.removeEventListener('click', handleOrderPlacement);
-    }
-  });
-}
-function handleOrderPlacement(event) {
-  const roleElement = event.target.closest('.role');
-  const orderInput = roleElement.querySelector('.order-input');
-  const orderAmount = parseInt(orderInput.value);
-  
-  if (orderAmount >= 0) {
-    socket.emit('placeOrder', { role: playerRole, amount: orderAmount });
-    orderInput.value = '';
-  } else {
-    alert('Por favor, ingresa una cantidad válida para el pedido.');
-  }
-}
-
 
 document.querySelectorAll('.order-button').forEach(button => {
   button.addEventListener('click', () => {
@@ -190,13 +140,3 @@ function endGame(gameState) {
   alert(`¡El juego ha terminado! Duración: ${gameDuration} semanas. Costo total: ${gameState.totalCosts}`);
   // Aquí puedes agregar lógica adicional para mostrar resultados finales, reiniciar el juego, etc.
 }
-socket.emit('getAvailableRoles');
-
-socket.on('availableRoles', (roles) => {
-  updateAvailableRoles(roles);
-});
-socket.on('roleAssigned', (role) => {
-  playerRole = role;
-  document.getElementById('player-role').textContent = role;
-  updateUIForPlayerRole();
-});
