@@ -24,6 +24,7 @@ class Game {
         }
         return null;
     }
+    
 
     removePlayer(playerId) {
         const role = this.players[playerId];
@@ -51,6 +52,15 @@ class Game {
 
     canAdvanceWeek() {
         return this.gameState.allOrdersPlaced;
+    }
+    getAvailableRoles() {
+        return this.roles.reduce((acc, role) => {
+            acc[role] = { playerName: this.gameState.roles[role].playerName };
+            return acc;
+        }, {});
+    }
+    getPlayerRole(playerId) {
+        return this.players[playerId];
     }
 
 
