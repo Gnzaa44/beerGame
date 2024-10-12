@@ -84,7 +84,7 @@ function updateRoleInfo(roles) {
 }
 
 function updateInfoPanel(gameState) {
-  document.getElementById('total-costs').textContent = gameState.totalCosts;
+  //document.getElementById('total-costs').textContent = gameState.totalCosts;
   document.getElementById('customer-demand').textContent = gameState.customerDemand;
 }
 

@@ -6,13 +6,27 @@ class Game {
             currentWeek: 0,
             customerDemand: 4,
             roles: {
-                Retailer: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false },
-                Wholesaler: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false },
-                Distributor: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false },
-                Factory: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false }
+                Retailer: this.initializeRoleState(),
+                Wholesaler: this.initializeRoleState(),
+                Distributor: this.initializeRoleState(),
+                Factory: this.initializeRoleState()
             },
-            totalCosts: 0,
+            
             allOrdersPlaced: false
+        };
+    }
+    initializeRoleState() {
+        return {
+            playerName: '',
+            inventory: 12,
+            backorder: 0,
+            incomingShipments: [4, 4],
+            orderPlaced: false,
+            deliveredBeer: 0,
+            accumulatedOrders: 0,
+            inventoryCost: 0,
+            backorderCost: 0,
+            totalCosts: 0
         };
     }
 
@@ -55,26 +69,37 @@ class Game {
 
 
     processOrders() {
-        for (let role of this.roles) {
+        for (let i = 0; i < this.roles.length; i++) {
+            let role = this.roles[i];
             let roleState = this.gameState.roles[role];
-            let incoming = roleState.incomingShipments[0] || 0;
-            roleState.inventory += incoming;
-            let demand = (role === 'Retailer') ? this.gameState.customerDemand : (roleState.incomingShipments[1] || 0);
-            let shipped = Math.min(roleState.inventory, demand + roleState.backorder);
-            roleState.inventory -= shipped;
-            roleState.backorder = Math.max(0, roleState.backorder + demand - shipped);
+            let nextRole = this.roles[i + 1];
+
+            // Actualizar inventario con pedidos entrantes
+            roleState.inventory += roleState.incomingShipments[0] || 0;
+
+            // Calcular demanda
+            let demand = (role === 'Retailer') ? this.gameState.customerDemand : 
+                        (nextRole ? this.gameState.roles[nextRole].deliveredBeer : 0);
+
+            // Calcular cerveza entregada
+            roleState.deliveredBeer = Math.min(roleState.inventory, demand + roleState.accumulatedOrders);
+
+            // Actualizar inventario y pedidos acumulados
+            roleState.inventory -= roleState.deliveredBeer;
+            roleState.accumulatedOrders = Math.max(0, demand + roleState.accumulatedOrders - roleState.deliveredBeer);
+
+            // Mover los pedidos en la cola
             roleState.incomingShipments.shift();
         }
     }
 
     calculateCosts() {
-        let totalCost = 0;
         for (let role of this.roles) {
             let roleState = this.gameState.roles[role];
-            totalCost += roleState.inventory * 0.5;
-            totalCost += roleState.backorder * 1;
+            roleState.inventoryCost += roleState.inventory * 0.5;
+            roleState.backorderCost += roleState.accumulatedOrders * 1;
+            this.gameState.totalCosts += roleState.inventoryCost + roleState.backorderCost;
         }
-        this.gameState.totalCosts += totalCost;
     }
 
     resetOrderFlags() {
@@ -104,7 +129,7 @@ class Game {
         return false;
     }
 
-    // Add this new method to check if the game has ended
+    
     isGameOver() {
         return this.gameState.currentWeek >= this.gameDuration;
     }
