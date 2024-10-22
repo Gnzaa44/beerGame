@@ -5,6 +5,7 @@ let playerRole = '';
 let currentWeek = 0;
 let gameDuration = 24;
 
+
 const playerInfoModal = new bootstrap.Modal(document.getElementById('playerInfoModal'), {
   keyboard: false
 });
@@ -37,11 +38,15 @@ document.getElementById('startGameWithSettingsBtn').addEventListener('click', ()
   }
 });
 
+
 socket.on('roleAssigned', (role) => {
   playerRole = role;
   document.getElementById('player-role').textContent = role;
   updateInputs(role);
+  // Mostrar el botón "Avanzar Semana" solo si el rol es Factory
 });
+
+
 
 function updateInputs(role) {
   const inputs = document.querySelectorAll('.order-input');
@@ -61,6 +66,7 @@ function updateInputs(role) {
 
 socket.on('updateGameState', (gameState) => {
   currentWeek = gameState.currentWeek;
+  
   document.getElementById('current-week').textContent = currentWeek;
   
   updateRoleInfo(gameState.roles);
