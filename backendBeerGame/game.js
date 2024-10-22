@@ -1,37 +1,23 @@
 class Game {
-    constructor() {
+    constructor(gameDuration=24) {
         this.roles = ['Retailer', 'Wholesaler', 'Distributor', 'Factory'];
         this.players = {};
+        this.gameDuration=this.gameDuration;
         this.gameState = {
             currentWeek: 0,
             customerDemand: 4,
             roles: {
-                Retailer: this.initializeRoleState(),
-                Wholesaler: this.initializeRoleState(),
-                Distributor: this.initializeRoleState(),
-                Factory: this.initializeRoleState()
+                Retailer: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false },
+                Wholesaler: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false },
+                Distributor: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false },
+                Factory: { playerName: '', inventory: 12, backorder: 0, incomingShipments: [4, 4], orderPlaced: false }
             },
-            
+            totalCosts: 0,
             allOrdersPlaced: false
-        };
-    }
-    initializeRoleState() {
-        return {
-            playerName: '',
-            inventory: 12,
-            backorder: 0,
-            incomingShipments: [4, 4],
-            orderPlaced: false,
-            deliveredBeer: 0,
-            accumulatedOrders: 0,
-            inventoryCost: 0,
-            backorderCost: 0,
-            totalCosts: 0
         };
     }
 
     addPlayer(playerId, playerName, requestedRole) {
-        console.log("en Add player game.js")
         if (this.roles.includes(requestedRole) && !this.gameState.roles[requestedRole].playerName) {
             this.players[playerId] = requestedRole;
             this.gameState.roles[requestedRole].playerName = playerName;
@@ -54,88 +40,66 @@ class Game {
         if (role) {
             this.gameState.roles[role].incomingShipments.push(amount);
             this.gameState.roles[role].orderPlaced = true;
-
-            this.processOrders();
-            this.calculateWeeklyCosts();
-
             this.checkAllOrdersPlaced();
-            return true;
+            return {
+                success: true,
+                role: role,
+                orderPlaced: this.gameState.roles[role].orderPlaced
+            };
         }
-        return false;
+        return { success: false };
     }
-    
 
     checkAllOrdersPlaced() {
         this.gameState.allOrdersPlaced = Object.values(this.gameState.roles).every(role => role.orderPlaced);
     }
 
-    /*canAdvanceWeek() {
+    canAdvanceWeek() {
         return this.gameState.allOrdersPlaced;
-    }*/
+    }
 
 
     processOrders() {
-        for (let i = 0; i < this.roles.length; i++) {
-            let role = this.roles[i];
-            let roleState = this.gameState.roles[role];
-            let nextRole = this.roles[i + 1];
+         // Procesar desde el minorista hacia arriba
+         for (let i = 0; i < this.roles.length; i++) {
+            const role = this.roles[i];
+            const roleState = this.gameState.roles[role];
             
-            // Actualizar inventario con pedidos entrantes
-            roleState.inventory += roleState.incomingShipments[0] || 0;
-            console.log("En game.js(processOrders)/ roleState.inventory: "+roleState.inventory)
-            // Calcular demanda
-            let demand = (role === 'Retailer') ? this.gameState.customerDemand : 
-                        (nextRole ? this.gameState.roles[nextRole].deliveredBeer : 0);
-
-            // Calcular cerveza entregada
-            roleState.deliveredBeer = Math.min(roleState.inventory, demand + roleState.accumulatedOrders);
-
-            // Actualizar inventario y pedidos acumulados
-            roleState.inventory -= roleState.deliveredBeer;
-            roleState.accumulatedOrders = Math.max(0, demand + roleState.accumulatedOrders - roleState.deliveredBeer);
-
-            // Mover los pedidos en la cola
+            // Recibir envío entrante
+            const incoming = roleState.incomingShipments[0] || 0;
+            roleState.inventory += incoming;
+            
+            // Determinar la demanda
+            let demand;
+            if (role === 'Retailer') {
+                demand = this.gameState.customerDemand;
+            } else {
+                // La demanda viene del pedido del rol anterior
+                const previousRole = this.roles[i - 1];
+                const previousRoleState = this.gameState.roles[previousRole];
+                demand = previousRoleState.incomingShipments[1] || 0;
+            }
+            
+            // Procesar envíos y pedidos pendientes
+            const totalDemand = demand + roleState.backorder;
+            const shipped = Math.min(roleState.inventory, totalDemand);
+            roleState.inventory -= shipped;
+            roleState.backorder = Math.max(0, totalDemand - shipped);
+            
+            // Actualizar cola de envíos
             roleState.incomingShipments.shift();
         }
     }
 
-    calculateWeeklyCosts() {
+    calculateCosts() {
+        let totalCost = 0;
         for (let role of this.roles) {
             let roleState = this.gameState.roles[role];
-            
-            // Calcula los costos de la semana actual
-            roleState.InventoryCost += roleState.inventory * 0.50;
-            roleState.BackorderCost += roleState.accumulatedOrders * 1.00;
-            roleState.TotalCost = roleState.InventoryCost + roleState.weeklyBackorderCost;
-            
-            // Actualiza los costos acumulados
-            /*roleState.totalInventoryCost = (roleState.totalInventoryCost || 0) + roleState.weeklyInventoryCost;
-            roleState.totalBackorderCost = (roleState.totalBackorderCost || 0) + roleState.weeklyBackorderCost;
-            roleState.totalCost = roleState.totalInventoryCost + roleState.totalBackorderCost;*/            
+            totalCost += roleState.inventory * 0.5;
+            totalCost += roleState.backorder * 1;
         }
+        this.gameState.totalCosts += totalCost;
     }
-
-    /*calculateCosts() {
-        for (let role of this.roles) {
-            let roleState = this.gameState.roles[role];
-            roleState.inventoryCost += roleState.inventory * 0.5;
-            roleState.backorderCost += roleState.accumulatedOrders * 1;
-            this.gameState.totalCosts += roleState.inventoryCost + roleState.backorderCost;
-        }
-
-    }*/
-    /*calculateCosts() {
-        for (let role of this.roles) {
-            this.calculateRoleCosts(role);
-        }
-    }*/
-    /*calculateRoleCosts(role) {
-        let roleState = this.gameState.roles[role];
-        // Calcula costos para un rol específico
-        roleState.inventoryCost = roleState.inventory * 0.5;
-        roleState.backorderCost = roleState.accumulatedOrders * 1;
-        roleState.totalCosts = roleState.inventoryCost + roleState.backorderCost;
-    }*/
 
     resetOrderFlags() {
         for (let role of this.roles) {
@@ -153,18 +117,32 @@ class Game {
     getGameState() {
         return this.gameState;
     }
-    /*advanceWeek() {
-        if (this.canAdvanceWeek() && this.gameState.currentWeek < this.gameDuration) {
-            this.gameState.currentWeek++;
+    advanceWeek() {
+        if ( this.gameState.currentWeek < this.gameDuration) {
             this.processOrders();
-            this.calculateCosts();
-            this.resetOrderFlags();
-            return true;
-        }
-        return false;
-    }*/
+           this.calculateCosts();
+           
+           // Luego avanzar la semana y resetear flags
+           this.gameState.currentWeek++;
+           this.resetOrderFlags();
+           
+           // Actualizar la demanda del cliente (puede ser aleatoria o seguir un patrón)
+           this.updateCustomerDemand();
+           
+           return true;
+       }
+       return false;
+    }
+    updateCustomerDemand() {
+        // Ejemplo simple: demanda aleatoria entre 0 y 8
+        this.gameState.customerDemand = Math.floor(Math.random() * 5) + 2;
+    }
+  
+   isFactoryPlayer(playerId) {
+        return this.players[playerId] === 'Factory';
+    }
 
-    
+    // Add this new method to check if the game has ended
     isGameOver() {
         return this.gameState.currentWeek >= this.gameDuration;
     }

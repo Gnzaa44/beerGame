@@ -67,6 +67,18 @@ io.on('connection', (socket) => {
       io.emit('updateGameState', game.getGameState());
     }
   });
+  socket.on('advanceWeek', () => {
+    const role = game.players[socket.id];
+    if (role === 'Factory' && game.canAdvanceWeek()) {
+      advanceWeek();
+    } else {
+      socket.emit('advanceNotAllowed', 'No puedes avanzar la semana aún o no eres el fabricante.');
+    }
+  });
+  
+  socket.on('advanceNotAllowed', (message) => {
+    alert(message);
+  });
 });
 
 function advanceWeek() {
