@@ -58,45 +58,45 @@ function updateRoleInfo(roles) {
   for (const [role, info] of Object.entries(roles)) {
       const roleElement = document.getElementById(role.toLowerCase());
       if (roleElement) {
-          // Actualización básica
+          // Actualización básica de información
           roleElement.querySelector('.player-name').textContent = info.playerName || 'Esperando jugador';
           roleElement.querySelector('.inventory').textContent = info.inventory;
-          roleElement.querySelector('.backorder').textContent = info.backorder;
+          roleElement.querySelector('.backorder').textContent = info.accumulatedOrders;
           roleElement.querySelector('.incoming-orders').textContent = info.incomingShipments.join(', ');
 
-          // Actualización inmediata de costos
-          const costsContainer = roleElement.querySelector('.costs-container');
+          // Crear o actualizar el contenedor de costos
+          let costsContainer = roleElement.querySelector('.costs-container');
           if (!costsContainer) {
-              const newCostsContainer = document.createElement('div');
-              newCostsContainer.className = 'costs-container mt-3 alert alert-info';
-              newCostsContainer.innerHTML = `
-                  <h6 class="alert-heading">Costos Actuales</h6>
-                  <div class="cost-item">
-                      <small>Inventario (${info.inventory} × $0.50):</small>
-                      <span class="inventory-cost">$${info.inventory.toFixed(2)}</span>
-                  </div>
-                  <div class="cost-item">
-                      <small>Backorder (${info.accumulatedOrders} × $1.00):</small>
-                      <span class="backorder-cost">$${info.backorderCost.toFixed(2)}</span>
-                  </div>
-                  <div class="cost-item fw-bold border-top pt-2">
-                      <small>Total:</small>
-                      <span class="total-cost">$${(info.inventoryCost + info.backorderCost).toFixed(2)}</span>
-                  </div>
-              `;
-              roleElement.insertBefore(newCostsContainer, roleElement.querySelector('.input-group'));
-          } else {
-              // Actualizar costos existentes con explicación
-              const items = costsContainer.querySelectorAll('.cost-item');
-              items[0].innerHTML = `<small>Inventario (${info.inventory} × $0.50):</small>
-                                  <span class="inventory-cost">$${info.inventoryCost.toFixed(2)}</span>`;
-              items[1].innerHTML = `<small>Backorder (${info.accumulatedOrders} × $1.00):</small>
-                                  <span class="backorder-cost">$${info.backorderCost.toFixed(2)}</span>`;
-              items[2].innerHTML = `<small>Total:</small>
-                                  <span class="total-cost">$${(info.inventoryCost + info.backorderCost).toFixed(2)}</span>`;
+              costsContainer = document.createElement('div');
+              costsContainer.className = 'costs-container mt-3';
+              roleElement.appendChild(costsContainer);
           }
 
-          // Actualización del estado de la orden
+          // Actualizar los costos con detalles
+          costsContainer.innerHTML = `
+              <div class="card">
+                  <div class="card-header bg-info text-white">
+                      <h6 class="mb-0">Costos de ${role}</h6>
+                  </div>
+                  <div class="card-body">
+                      <h6>Costos Semanales</h6>
+                      <div class="ml-3 mb-2">
+                          <div>Inventario (${info.inventory} × $0.50) = $${info.inventoryCost?.toFixed(2) || '0.00'}</div>
+                          <div>Backorder (${info.accumulatedOrders} × $1.00) = $${info.backorderCost?.toFixed(2) || '0.00'}</div>
+                          <div class="font-weight-bold">Total Semanal: $${info.weeklyTotalCost?.toFixed(2) || '0.00'}</div>
+                      </div>
+                      
+                      <h6 class="mt-3">Costos Acumulados</h6>
+                      <div class="ml-3">
+                          <div>Total Inventario: $${info.totalInventoryCost?.toFixed(2) || '0.00'}</div>
+                          <div>Total Backorder: $${info.totalBackorderCost?.toFixed(2) || '0.00'}</div>
+                          <div class="font-weight-bold">Total Acumulado: $${info.totalCost?.toFixed(2) || '0.00'}</div>
+                      </div>
+                  </div>
+              </div>
+          `;
+
+          // Actualizar estado del botón de orden
           const orderButton = roleElement.querySelector('.order-button');
           const orderStatus = roleElement.querySelector('.order-status');
           if (info.orderPlaced) {
@@ -115,46 +115,28 @@ function updateRoleInfo(roles) {
 function updateInfoPanel(gameState) {
   document.getElementById('customer-demand').textContent = gameState.customerDemand;
   
-  // Crear o actualizar el panel de estadísticas globales
+  const totalCosts = Object.values(gameState.roles).reduce((sum, role) => 
+      sum + (role.totalCost || 0), 0);
+  
   const infoPanel = document.getElementById('info-panel');
-  const statsContainer = infoPanel.querySelector('.stats-container') || document.createElement('div');
-  statsContainer.className = 'stats-container mt-3';
-  
-  // Calcular estadísticas globales
-  let totalInventoryCost = 0;
-  let totalBackorderCost = 0;
-  let totalDeliveredBeer = 0;
-  
-  Object.values(gameState.roles).forEach(role => {
-    console.log("en Object.value");
-    console.log("role.InvetoryCosts: " + role.inventoryCost);
-    totalInventoryCost += role.inventoryCost;
-    console.log("totalInvetoryCosts: " + totalInventoryCost);
-    totalBackorderCost += role.backorderCost;
-    console.log("totalBackorderCosts: " + totalBackorderCost);
-    totalDeliveredBeer += role.deliveredBeer;
-    console.log("totalDeliveredBeer: " + totalDeliveredBeer);
-  });
-
-  statsContainer.innerHTML = `
-    <div class="row">
-      <div class="col-md-6">
-        <h5>Costos Globales</h5>
-        <div>Costo total de inventario: $${totalInventoryCost.toFixed(2)}</div>
-        <div>Costo total de backorder: $${totalBackorderCost.toFixed(2)}</div>
-        <div>Costo total del juego: $${(totalInventoryCost + totalBackorderCost).toFixed(2)}</div>
+  infoPanel.innerHTML = `
+      <div class="card mt-3">
+          <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">Resumen del Juego</h5>
+          </div>
+          <div class="card-body">
+              <div class="row">
+                  <div class="col-md-6">
+                      <h6>Semana Actual: ${gameState.currentWeek}</h6>
+                      <h6>Demanda del Cliente: ${gameState.customerDemand}</h6>
+                  </div>
+                  <div class="col-md-6">
+                      <h6>Costo Total del Juego: $${totalCosts.toFixed(2)}</h6>
+                  </div>
+              </div>
+          </div>
       </div>
-      <div class="col-md-6">
-        <h5>Estadísticas de Entrega</h5>
-        <div>Total de cerveza entregada: ${totalDeliveredBeer}</div>
-        <div>Semana actual: ${gameState.currentWeek}</div>
-      </div>
-    </div>
   `;
-
-  if (!infoPanel.querySelector('.stats-container')) {
-    infoPanel.appendChild(statsContainer);
-  }
 }
 /*function updateRoleInfo(roles) {
   for (const [role, info] of Object.entries(roles)) {

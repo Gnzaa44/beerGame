@@ -55,7 +55,8 @@ class Game {
             this.gameState.roles[role].incomingShipments.push(amount);
             this.gameState.roles[role].orderPlaced = true;
 
-            this.calculateRoleCosts(role);
+            this.processOrders();
+            this.calculateWeeklyCosts();
 
             this.checkAllOrdersPlaced();
             return true;
@@ -68,9 +69,9 @@ class Game {
         this.gameState.allOrdersPlaced = Object.values(this.gameState.roles).every(role => role.orderPlaced);
     }
 
-    canAdvanceWeek() {
+    /*canAdvanceWeek() {
         return this.gameState.allOrdersPlaced;
-    }
+    }*/
 
 
     processOrders() {
@@ -78,7 +79,7 @@ class Game {
             let role = this.roles[i];
             let roleState = this.gameState.roles[role];
             let nextRole = this.roles[i + 1];
-
+            
             // Actualizar inventario con pedidos entrantes
             roleState.inventory += roleState.incomingShipments[0] || 0;
             console.log("En game.js(processOrders)/ roleState.inventory: "+roleState.inventory)
@@ -98,7 +99,23 @@ class Game {
         }
     }
 
-    calculateCosts() {
+    calculateWeeklyCosts() {
+        for (let role of this.roles) {
+            let roleState = this.gameState.roles[role];
+            
+            // Calcula los costos de la semana actual
+            roleState.InventoryCost += roleState.inventory * 0.50;
+            roleState.BackorderCost += roleState.accumulatedOrders * 1.00;
+            roleState.TotalCost = roleState.InventoryCost + roleState.weeklyBackorderCost;
+            
+            // Actualiza los costos acumulados
+            /*roleState.totalInventoryCost = (roleState.totalInventoryCost || 0) + roleState.weeklyInventoryCost;
+            roleState.totalBackorderCost = (roleState.totalBackorderCost || 0) + roleState.weeklyBackorderCost;
+            roleState.totalCost = roleState.totalInventoryCost + roleState.totalBackorderCost;*/            
+        }
+    }
+
+    /*calculateCosts() {
         for (let role of this.roles) {
             let roleState = this.gameState.roles[role];
             roleState.inventoryCost += roleState.inventory * 0.5;
@@ -106,19 +123,19 @@ class Game {
             this.gameState.totalCosts += roleState.inventoryCost + roleState.backorderCost;
         }
 
-    }
+    }*/
     /*calculateCosts() {
         for (let role of this.roles) {
             this.calculateRoleCosts(role);
         }
     }*/
-    calculateRoleCosts(role) {
+    /*calculateRoleCosts(role) {
         let roleState = this.gameState.roles[role];
         // Calcula costos para un rol específico
         roleState.inventoryCost = roleState.inventory * 0.5;
         roleState.backorderCost = roleState.accumulatedOrders * 1;
         roleState.totalCosts = roleState.inventoryCost + roleState.backorderCost;
-    }
+    }*/
 
     resetOrderFlags() {
         for (let role of this.roles) {
@@ -136,7 +153,7 @@ class Game {
     getGameState() {
         return this.gameState;
     }
-    advanceWeek() {
+    /*advanceWeek() {
         if (this.canAdvanceWeek() && this.gameState.currentWeek < this.gameDuration) {
             this.gameState.currentWeek++;
             this.processOrders();
@@ -145,7 +162,7 @@ class Game {
             return true;
         }
         return false;
-    }
+    }*/
 
     
     isGameOver() {

@@ -39,6 +39,8 @@ io.on('connection', (socket) => {
     }
   });*/
 
+  
+
   socket.on('placeOrder', (order) => {
     if (game.placeOrder(socket.id, order.amount)) {
         // Emitir actualización inmediata
