@@ -28,7 +28,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('placeOrder', (order) => {
+  /*socket.on('placeOrder', (order) => {
     if (game.placeOrder(socket.id, order.amount)) {
       socket.emit('orderConfirmation', `Pedido de ${order.amount} unidades realizado`);
       if (game.canAdvanceWeek()) {
@@ -37,7 +37,21 @@ io.on('connection', (socket) => {
         io.emit('updateGameState', game.getGameState());
       }
     }
-  });
+  });*/
+
+  socket.on('placeOrder', (order) => {
+    if (game.placeOrder(socket.id, order.amount)) {
+        // Emitir actualización inmediata
+        socket.emit('orderConfirmation', `Pedido de ${order.amount} unidades realizado`);
+        io.emit('updateGameState', game.getGameState());
+        
+        if (game.canAdvanceWeek()) {
+            advanceWeek();
+        }
+    }
+});
+
+
 
   socket.on('updateInventory', (inventoryUpdate) => {
     game.updateInventory(inventoryUpdate.role, inventoryUpdate.inventory);

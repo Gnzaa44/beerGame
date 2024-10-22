@@ -31,6 +31,7 @@ class Game {
     }
 
     addPlayer(playerId, playerName, requestedRole) {
+        console.log("en Add player game.js")
         if (this.roles.includes(requestedRole) && !this.gameState.roles[requestedRole].playerName) {
             this.players[playerId] = requestedRole;
             this.gameState.roles[requestedRole].playerName = playerName;
@@ -53,11 +54,15 @@ class Game {
         if (role) {
             this.gameState.roles[role].incomingShipments.push(amount);
             this.gameState.roles[role].orderPlaced = true;
+
+            this.calculateRoleCosts(role);
+
             this.checkAllOrdersPlaced();
             return true;
         }
         return false;
     }
+    
 
     checkAllOrdersPlaced() {
         this.gameState.allOrdersPlaced = Object.values(this.gameState.roles).every(role => role.orderPlaced);
@@ -76,7 +81,7 @@ class Game {
 
             // Actualizar inventario con pedidos entrantes
             roleState.inventory += roleState.incomingShipments[0] || 0;
-
+            console.log("En game.js(processOrders)/ roleState.inventory: "+roleState.inventory)
             // Calcular demanda
             let demand = (role === 'Retailer') ? this.gameState.customerDemand : 
                         (nextRole ? this.gameState.roles[nextRole].deliveredBeer : 0);
@@ -100,6 +105,19 @@ class Game {
             roleState.backorderCost += roleState.accumulatedOrders * 1;
             this.gameState.totalCosts += roleState.inventoryCost + roleState.backorderCost;
         }
+
+    }
+    /*calculateCosts() {
+        for (let role of this.roles) {
+            this.calculateRoleCosts(role);
+        }
+    }*/
+    calculateRoleCosts(role) {
+        let roleState = this.gameState.roles[role];
+        // Calcula costos para un rol específico
+        roleState.inventoryCost = roleState.inventory * 0.5;
+        roleState.backorderCost = roleState.accumulatedOrders * 1;
+        roleState.totalCosts = roleState.inventoryCost + roleState.backorderCost;
     }
 
     resetOrderFlags() {

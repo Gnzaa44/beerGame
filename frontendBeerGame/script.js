@@ -56,6 +56,108 @@ socket.on('updateGameState', (gameState) => {
 
 function updateRoleInfo(roles) {
   for (const [role, info] of Object.entries(roles)) {
+      const roleElement = document.getElementById(role.toLowerCase());
+      if (roleElement) {
+          // Actualización básica
+          roleElement.querySelector('.player-name').textContent = info.playerName || 'Esperando jugador';
+          roleElement.querySelector('.inventory').textContent = info.inventory;
+          roleElement.querySelector('.backorder').textContent = info.backorder;
+          roleElement.querySelector('.incoming-orders').textContent = info.incomingShipments.join(', ');
+
+          // Actualización inmediata de costos
+          const costsContainer = roleElement.querySelector('.costs-container');
+          if (!costsContainer) {
+              const newCostsContainer = document.createElement('div');
+              newCostsContainer.className = 'costs-container mt-3 alert alert-info';
+              newCostsContainer.innerHTML = `
+                  <h6 class="alert-heading">Costos Actuales</h6>
+                  <div class="cost-item">
+                      <small>Inventario (${info.inventory} × $0.50):</small>
+                      <span class="inventory-cost">$${info.inventory.toFixed(2)}</span>
+                  </div>
+                  <div class="cost-item">
+                      <small>Backorder (${info.accumulatedOrders} × $1.00):</small>
+                      <span class="backorder-cost">$${info.backorderCost.toFixed(2)}</span>
+                  </div>
+                  <div class="cost-item fw-bold border-top pt-2">
+                      <small>Total:</small>
+                      <span class="total-cost">$${(info.inventoryCost + info.backorderCost).toFixed(2)}</span>
+                  </div>
+              `;
+              roleElement.insertBefore(newCostsContainer, roleElement.querySelector('.input-group'));
+          } else {
+              // Actualizar costos existentes con explicación
+              const items = costsContainer.querySelectorAll('.cost-item');
+              items[0].innerHTML = `<small>Inventario (${info.inventory} × $0.50):</small>
+                                  <span class="inventory-cost">$${info.inventoryCost.toFixed(2)}</span>`;
+              items[1].innerHTML = `<small>Backorder (${info.accumulatedOrders} × $1.00):</small>
+                                  <span class="backorder-cost">$${info.backorderCost.toFixed(2)}</span>`;
+              items[2].innerHTML = `<small>Total:</small>
+                                  <span class="total-cost">$${(info.inventoryCost + info.backorderCost).toFixed(2)}</span>`;
+          }
+
+          // Actualización del estado de la orden
+          const orderButton = roleElement.querySelector('.order-button');
+          const orderStatus = roleElement.querySelector('.order-status');
+          if (info.orderPlaced) {
+              orderButton.disabled = true;
+              orderStatus.textContent = 'Pedido realizado para esta semana';
+              orderStatus.classList.add('text-success');
+          } else {
+              orderButton.disabled = false;
+              orderStatus.textContent = '';
+              orderStatus.classList.remove('text-success');
+          }
+      }
+  }
+}
+
+function updateInfoPanel(gameState) {
+  document.getElementById('customer-demand').textContent = gameState.customerDemand;
+  
+  // Crear o actualizar el panel de estadísticas globales
+  const infoPanel = document.getElementById('info-panel');
+  const statsContainer = infoPanel.querySelector('.stats-container') || document.createElement('div');
+  statsContainer.className = 'stats-container mt-3';
+  
+  // Calcular estadísticas globales
+  let totalInventoryCost = 0;
+  let totalBackorderCost = 0;
+  let totalDeliveredBeer = 0;
+  
+  Object.values(gameState.roles).forEach(role => {
+    console.log("en Object.value");
+    console.log("role.InvetoryCosts: " + role.inventoryCost);
+    totalInventoryCost += role.inventoryCost;
+    console.log("totalInvetoryCosts: " + totalInventoryCost);
+    totalBackorderCost += role.backorderCost;
+    console.log("totalBackorderCosts: " + totalBackorderCost);
+    totalDeliveredBeer += role.deliveredBeer;
+    console.log("totalDeliveredBeer: " + totalDeliveredBeer);
+  });
+
+  statsContainer.innerHTML = `
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Costos Globales</h5>
+        <div>Costo total de inventario: $${totalInventoryCost.toFixed(2)}</div>
+        <div>Costo total de backorder: $${totalBackorderCost.toFixed(2)}</div>
+        <div>Costo total del juego: $${(totalInventoryCost + totalBackorderCost).toFixed(2)}</div>
+      </div>
+      <div class="col-md-6">
+        <h5>Estadísticas de Entrega</h5>
+        <div>Total de cerveza entregada: ${totalDeliveredBeer}</div>
+        <div>Semana actual: ${gameState.currentWeek}</div>
+      </div>
+    </div>
+  `;
+
+  if (!infoPanel.querySelector('.stats-container')) {
+    infoPanel.appendChild(statsContainer);
+  }
+}
+/*function updateRoleInfo(roles) {
+  for (const [role, info] of Object.entries(roles)) {
     const roleElement = document.getElementById(role.toLowerCase());
     if (roleElement) {
       roleElement.querySelector('.player-name').textContent = info.playerName || 'Esperando jugador';
@@ -86,7 +188,7 @@ function updateRoleInfo(roles) {
 function updateInfoPanel(gameState) {
   //document.getElementById('total-costs').textContent = gameState.totalCosts;
   document.getElementById('customer-demand').textContent = gameState.customerDemand;
-}
+}*/
 
 document.querySelectorAll('.order-button').forEach(button => {
   button.addEventListener('click', () => {
